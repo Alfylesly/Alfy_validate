@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Atrium — AI Interview Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+</script>
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F4F2EC;
+    --border: #E6E3DC;
+    --border-strong: #D5D1C7;
+    --text: #1A1A1A;
+    --text-muted: #6B6963;
+    --text-soft: #908D85;
+    --accent: #2F4F4F;
+    --accent-hover: #1F3F3F;
+    --accent-soft: #E8EFEC;
+    --danger: #B23A48;
+    --danger-soft: #FBEDED;
+    --success: #2E7D5B;
+    --success-soft: #E6F1EB;
+    --warn: #B27A1E;
+    --warn-soft: #FBF2DF;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow-sm: 0 1px 2px rgba(20,20,20,0.04);
+    --shadow-md: 0 4px 14px rgba(20,20,20,0.06);
+    --shadow-lg: 0 20px 50px rgba(20,20,20,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; letter-spacing: -0.01em; margin: 0; }
+  h1 { font-size: 38px; line-height: 1.15; }
+  h2 { font-size: 26px; line-height: 1.2; }
+  h3 { font-size: 20px; line-height: 1.3; }
+  p { margin: 0 0 10px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea, select {
+    font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); padding: 10px 12px; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+  .field { margin-bottom: 16px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid transparent;
+    font-size: 14px; font-weight: 500; transition: all .15s; text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+  .btn-secondary:hover { background: var(--surface-2); }
+  .btn-ghost { background: transparent; color: var(--text-muted); }
+  .btn-ghost:hover { color: var(--text); background: var(--surface-2); }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-danger:hover { background: #8E2937; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Layout */
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, #2F4F4F, #4A6B6B);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-family: 'Fraunces', serif; font-weight: 600;
+  }
+  .brand-name { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
+  .brand-sub { color: var(--text-soft); font-size: 12px; margin-left: 4px; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-muted); }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 100px; background: var(--surface-2); border: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+  .pill-accent { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .pill-success { background: var(--success-soft); color: var(--success); }
+  .pill-warn { background: var(--warn-soft); color: var(--warn); }
+  .pill-danger { background: var(--danger-soft); color: var(--danger); }
+  .container { max-width: 1180px; width: 100%; margin: 0 auto; padding: 32px; flex: 1; }
+  .container-narrow { max-width: 720px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm);
+  }
+  .card + .card { margin-top: 18px; }
+  .card-pad-sm { padding: 18px; }
+
+  /* Login */
+  .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg); }
+  .auth-card { width: 100%; max-width: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px; box-shadow: var(--shadow-lg); }
+  .auth-title { text-align: center; margin-bottom: 6px; }
+  .auth-sub { text-align: center; color: var(--text-muted); margin-bottom: 26px; font-size: 14px; }
+  .role-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 22px; }
+  .role-toggle button { background: var(--surface); border: none; padding: 10px; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all .15s; }
+  .role-toggle button.active { background: var(--accent); color: white; }
+
+  /* Hero on login */
+  .auth-hero-tag { display: inline-block; padding: 4px 10px; border-radius: 100px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; }
+
+  /* Stats grid */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+  .tab { background: none; border: none; padding: 10px 14px; font-size: 14px; font-weight: 500; color: var(--text-muted); position: relative; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  .empty { padding: 60px 20px; text-align: center; color: var(--text-muted); }
+
+  /* Two col */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Interview screen */
+  .interview-wrap { display: grid; grid-template-columns: 1fr 360px; gap: 22px; }
+  @media (max-width: 980px) { .interview-wrap { grid-template-columns: 1fr; } }
+  .video-frame {
+    background: #1A1A1A; border-radius: var(--radius); overflow: hidden;
+    aspect-ratio: 16/9; position: relative;
+  }
+  .video-frame video { width: 100%; height: 100%; object-fit: cover; }
+  .rec-indicator { position: absolute; top: 12px; left: 12px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.55); color: white; padding: 6px 12px; border-radius: 100px; font-size: 12px; }
+  .rec-dot { width: 8px; height: 8px; background: #FF4444; border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-top: 14px; }
+  .q-number { font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .q-text { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.35; margin-bottom: 16px; }
+  .timer { font-family: 'Fraunces', serif; font-size: 18px; }
+
+  /* Sidebar */
+  .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .side-card + .side-card { margin-top: 14px; }
+  .progress { height: 6px; background: var(--surface-2); border-radius: 100px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); transition: width .3s; }
+
+  /* Score display */
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .score-cell { background: var(--surface-2); border-radius: var(--radius-sm); padding: 14px; }
+  .score-num { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; }
+  .score-label { font-size: 12px; color: var(--text-muted); }
+
+  /* Misc */
+  .muted { color: var(--text-muted); }
+  .small { font-size: 13px; }
+  .xsmall { font-size: 12px; }
+  .mb-0 { margin-bottom: 0; }
+  .mb-1 { margin-bottom: 8px; }
+  .mb-2 { margin-bottom: 16px; }
+  .mb-3 { margin-bottom: 24px; }
+  .mt-2 { margin-top: 16px; }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .row-between { display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+  .gap-sm { gap: 6px; }
+  .hidden { display: none !important; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .alert { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; }
+  .alert-info { background: var(--accent-soft); color: var(--accent); }
+  .alert-warn { background: var(--warn-soft); color: var(--warn); }
+  .alert-danger { background: var(--danger-soft); color: var(--danger); }
+  .alert-success { background: var(--success-soft); color: var(--success); }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(20,20,20,0.45); display: grid; place-items: center; z-index: 100; padding: 20px; }
+  .modal { background: var(--surface); border-radius: var(--radius); max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+  .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 24px; }
+  .modal-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+  .close-x { background: none; border: none; font-size: 22px; color: var(--text-muted); cursor: pointer; line-height: 1; padding: 4px; }
+
+  /* Toast */
+  .toast-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
+  .toast { background: #1A1A1A; color: white; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; box-shadow: var(--shadow-lg); animation: slideIn .25s; max-width: 360px; }
+  @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
+
+  /* Avatar / Initial */
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+
+  /* Code box */
+  .code-box { font-family: 'SF Mono', Menlo, Monaco, monospace; background: var(--surface-2); border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 14px; font-size: 18px; letter-spacing: 0.1em; text-align: center; }
+
+  /* Loading */
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .thinking { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ============================ APP SHELL ============================ -->
+<div id="app" class="app"></div>
+
+<div id="toasts" class="toast-wrap"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* =====================================================================
+   ATRIUM — AI Interview Studio (Single-file SPA)
+   ===================================================================== */
+
+/* ----------------------------- STATE ----------------------------- */
+const STORE_KEYS = {
+  auth: 'atrium.auth',
+  admins: 'atrium.admins',
+  interviews: 'atrium.interviews',
+  config: 'atrium.config',
+  sessions: 'atrium.sessions',
+};
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+// Seed admin user if first run
+if (!load(STORE_KEYS.admins, null)) {
+  save(STORE_KEYS.admins, [{ username: 'admin', password: 'admin123', name: 'Administrator' }]);
+}
+if (!load(STORE_KEYS.config, null)) {
+  save(STORE_KEYS.config, {
+    apiKey: '',
+    model: 'claude-sonnet-4-6',
+    proxyUrl: '',
+    useProxy: false,
+  });
+}
+if (!load(STORE_KEYS.interviews, null)) save(STORE_KEYS.interviews, []);
+if (!load(STORE_KEYS.sessions, null)) save(STORE_KEYS.sessions, []);
+
+const State = {
+  get auth() { return load(STORE_KEYS.auth, null); },
+  set auth(v) { v === null ? localStorage.removeItem(STORE_KEYS.auth) : save(STORE_KEYS.auth, v); },
+  get admins() { return load(STORE_KEYS.admins, []); },
+  set admins(v) { save(STORE_KEYS.admins, v); },
+  get config() { return load(STORE_KEYS.config, {}); },
+  set config(v) { save(STORE_KEYS.config, v); },
+  get interviews() { return load(STORE_KEYS.interviews, []); },
+  set interviews(v) { save(STORE_KEYS.interviews, v); },
+  get sessions() { return load(STORE_KEYS.sessions, []); },
+  set sessions(v) { save(STORE_KEYS.sessions, v); },
+};
+
+/* ----------------------------- UTIL ----------------------------- */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const uid = (p='') => p + Math.random().toString(36).slice(2, 10);
+const code6 = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const escapeHTML = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = ts => new Date(ts).toLocaleString();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function toast(msg, type='info') {
+  const wrap = $('#toasts');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  if (type === 'error') el.style.background = '#B23A48';
+  if (type === 'success') el.style.background = '#2E7D5B';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function confirmModal({ title='Confirm', body='', okText='OK', danger=false }) {
+  return new Promise(resolve => {
+    const root = $('#modalRoot');
+    root.innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal">
+          <div class="modal-head"><h3>${escapeHTML(title)}</h3><button class="close-x" data-act="cancel">&times;</button></div>
+          <div class="modal-body">${body}</div>
+          <div class="modal-foot">
+            <button class="btn btn-secondary" data-act="cancel">Cancel</button>
+            <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-act="ok">${escapeHTML(okText)}</button>
+          </div>
+        </div>
+      </div>`;
+    root.addEventListener('click', function handler(e) {
+      const act = e.target.dataset.act;
+      if (act === 'ok') { root.innerHTML = ''; root.removeEventListener('click', handler); resolve(true); }
+      else if (act === 'cancel' || e.target.classList.contains('modal-backdrop')) { root.innerHTML=''; root.removeEventListener('click', handler); resolve(false); }
+    });
+  });
+}
+
+function openModal(html) {
+  const root = $('#modalRoot');
+  root.innerHTML = `<div class="modal-backdrop"><div class="modal">${html}</div></div>`;
+  root.querySelector('.modal-backdrop').addEventListener('click', e => {
+    if (e.target.classList.contains('modal-backdrop') || e.target.dataset.act === 'close') root.innerHTML = '';
+  });
+  return root;
+}
+function closeModal() { $('#modalRoot').innerHTML = ''; }
+
+/* ----------------------------- CLAUDE API ----------------------------- */
+async function callClaude({ system, messages, maxTokens=1500 }) {
+  const cfg = State.config;
+  if (cfg.useProxy && cfg.proxyUrl) {
+    const r = await fetch(cfg.proxyUrl, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: cfg.model, system, messages, max_tokens: maxTokens })
+    });
+    if (!r.ok) throw new Error('Proxy error: ' + r.status + ' ' + await r.text());
+    const data = await r.json();
+    return data.content?.[0]?.text || '';
+  }
+  if (!cfg.apiKey) throw new Error('No Claude API key configured. Open Admin → Settings.');
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': cfg.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({ model: cfg.model, system, messages, max_tokens: maxTokens })
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error('Claude API: ' + r.status + ' — ' + t.slice(0, 300));
+  }
+  const data = await r.json();
+  return data.content?.[0]?.text || '';
+}
+
+function tryParseJSON(s) {
+  if (!s) return null;
+  // strip ```json fences
+  const cleaned = s.replace(/```json|```/g, '').trim();
+  // try direct, then largest {...}
+  try { return JSON.parse(cleaned); } catch (e) {}
+  const m = cleaned.match(/\{[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch(e) {} }
+  return null;
+}
+
+/* ----------------------------- ROUTER ----------------------------- */
+const Router = {
+  go(name, params={}) { this.current = { name, params }; render(); },
+  current: { name: 'login', params: {} }
+};
+
+function getInitialRoute() {
+  // Allow ?code=XXX deep link for candidates
+  const u = new URL(location.href);
+  const code = u.searchParams.get('code');
+  if (code) return { name: 'candidate-entry', params: { code } };
+  const auth = State.auth;
+  if (auth?.role === 'admin') return { name: 'admin-home', params: {} };
+  return { name: 'login', params: {} };
+}
+
+/* ----------------------------- RENDER ----------------------------- */
+function render() {
+  const app = $('#app');
+  const r = Router.current;
+  switch (r.name) {
+    case 'login':            return renderLogin(app);
+    case 'admin-home':       return renderAdminHome(app);
+    case 'admin-new':        return renderAdminNew(app);
+    case 'admin-view':       return renderAdminView(app, r.params.id);
+    case 'admin-settings':   return renderAdminSettings(app);
+    case 'candidate-entry':  return renderCandidateEntry(app, r.params.code);
+    case 'candidate-info':   return renderCandidateInfo(app, r.params.id);
+    case 'candidate-resume': return renderCandidateResume(app, r.params.id);
+    case 'candidate-check':  return renderCandidateCheck(app, r.params.id);
+    case 'candidate-int':    return renderCandidateInterview(app, r.params.id);
+    case 'candidate-done':   return renderCandidateDone(app, r.params.id);
+    default: return renderLogin(app);
+  }
+}
+
+/* ----------------------------- TOPBAR ----------------------------- */
+function topbar(opts={}) {
+  const { right='', subtitle='' } = opts;
+  return `
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">A</div>
+        <div>
+          <div class="brand-name">Atrium <span class="brand-sub">AI Interview Studio</span></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        ${subtitle ? `<span class="muted">${escapeHTML(subtitle)}</span>` : ''}
+        ${right}
+      </div>
+    </div>`;
+}
+
+/* ============================ LOGIN ============================ */
+function renderLogin(app) {
+  app.innerHTML = `
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div style="text-align:center; margin-bottom: 22px;">
+          <div class="brand-mark" style="margin:0 auto 14px; width:42px; height:42px; font-size:18px;">A</div>
+          <span class="auth-hero-tag">Atrium · AI Interview Studio</span>
+          <h2 class="auth-title" style="margin-top:6px;">Welcome</h2>
+          <p class="auth-sub">Sign in to conduct or take an interview.</p>
+        </div>
+        <div class="role-toggle">
+          <button id="roleAdmin" class="active">Administrator</button>
+          <button id="roleCand">Candidate</button>
+        </div>
+
+        <div id="adminForm">
+          <div class="field"><label>Username</label><input id="loginUser" value="admin" /></div>
+          <div class="field"><label>Password</label><input id="loginPass" type="password" value="admin123" /></div>
+          <button id="loginBtn" class="btn btn-primary" style="width:100%; justify-content:center;">Sign in to dashboard</button>
+          <p class="xsmall muted" style="text-align:center; margin-top:14px;">Default credentials: admin / admin123 — change after first login.</p>
+        </div>
+
+        <div id="candForm" style="display:none;">
+          <div class="field">
+            <label>Interview invite code</label>
+            <input id="invCode" placeholder="e.g. AB12CD" style="text-transform: uppercase; letter-spacing: 0.1em;" />
+          </div>
+          <button id="invBtn" class="btn btn-primary" style="width:100%; justify-content:center;">Enter interview</button>
+          <p class="xsmall muted" style="text-align:center; margin-top:14px;">Don't have a code? Ask the recruiter who invited you.</p>
+        </div>
+      </div>
+    </div>`;
+
+  let mode = 'admin';
+  $('#roleAdmin').onclick = () => { mode='admin'; $('#roleAdmin').classList.add('active'); $('#roleCand').classList.remove('active'); $('#adminForm').style.display=''; $('#candForm').style.display='none'; };
+  $('#roleCand').onclick = () => { mode='cand'; $('#roleCand').classList.add('active'); $('#roleAdmin').classList.remove('active'); $('#candForm').style.display=''; $('#adminForm').style.display='none'; };
+
+  $('#loginBtn').onclick = () => {
+    const u = $('#loginUser').value.trim();
+    const p = $('#loginPass').value;
+    const admin = State.admins.find(a => a.username === u && a.password === p);
+    if (!admin) return toast('Invalid credentials', 'error');
+    State.auth = { role: 'admin', username: u, name: admin.name };
+    Router.go('admin-home');
+  };
+  $('#invBtn').onclick = () => {
+    const c = $('#invCode').value.trim().toUpperCase();
+    if (!c) return toast('Enter an invite code', 'error');
+    Router.go('candidate-entry', { code: c });
+  };
+}
+
+/* ============================ ADMIN ============================ */
+function adminTopRight() {
+  const a = State.auth;
+  return `
+    <div class="avatar">${escapeHTML((a?.name||'A')[0])}</div>
+    <span class="muted">${escapeHTML(a?.name||'')}</span>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign out</button>
+  `;
+}
+
+function attachAdminTopbar() {
+  $('#logoutBtn')?.addEventListener('click', () => { State.auth = null; Router.go('login'); });
+}
+
+function renderAdminHome(app) {
+  const interviews = State.interviews;
+  const sessions = State.sessions;
+  const completed = sessions.filter(s => s.status === 'analyzed').length;
+  const inProgress = sessions.filter(s => s.status === 'in_progress').length;
+  const avgScore = (() => {
+    const scored = sessions.filter(s => s.analysis?.overall_score != null);
+    if (!scored.length) return '—';
+    return Math.round(scored.reduce((a,b) => a + b.analysis.overall_score, 0) / scored.length);
+  })();
+
+  app.innerHTML = `
+    ${topbar({ right: adminTopRight(), subtitle: 'Admin' })}
+    <div class="container">
+      <div class="row-between mb-3">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="muted" style="margin-top:4px;">Manage interview slots, view analyses, configure your Claude account.</p>
+        </div>
+        <div class="row">
+          <button class="btn btn-secondary" id="settingsBtn">Settings</button>
+          <button class="btn btn-primary" id="newBtn">+ New interview</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Open interviews</div><div class="stat-value">${interviews.filter(i => !i.archived).length}</div></div>
+        <div class="stat"><div class="stat-label">Completed</div><div class="stat-value">${completed}</div></div>
+        <div class="stat"><div class="stat-label">In progress</div><div class="stat-value">${inProgress}</div></div>
+        <div class="stat"><div class="stat-label">Avg overall score</div><div class="stat-value">${avgScore}${avgScore!=='—'?'<span style="font-size:14px; color: var(--text-muted);">/100</span>':''}</div></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="slots">Interview slots</button>
+        <button class="tab" data-tab="sessions">Candidate sessions</button>
+      </div>
+      <div id="tabBody"></div>
+    </div>`;
+
+  attachAdminTopbar();
+  $('#settingsBtn').onclick = () => Router.go('admin-settings');
+  $('#newBtn').onclick = () => Router.go('admin-new');
+
+  const tabBody = $('#tabBody');
+  function renderTab(t) {
+    $$('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+    if (t === 'slots') renderSlots();
+    else renderSessions();
+  }
+  $$('.tab').forEach(b => b.onclick = () => renderTab(b.dataset.tab));
+
+  function renderSlots() {
+    if (!interviews.length) {
+      tabBody.innerHTML = `<div class="card empty"><h3 style="margin-bottom:8px;">No interviews yet</h3><p class="muted">Create your first interview slot — set the role, level, and what you want to evaluate.</p><button class="btn btn-primary mt-2" id="emptyNew">+ New interview</button></div>`;
+      $('#emptyNew').onclick = () => Router.go('admin-new');
+      return;
+    }
+    tabBody.innerHTML = `
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Role</th><th>Level</th><th>Code</th><th>Questions</th><th>Created</th><th>Sessions</th><th style="width:160px;"></th></tr></thead>
+          <tbody>
+            ${interviews.map(i => {
+              const sCount = State.sessions.filter(s => s.interviewId === i.id).length;
+              return `<tr>
+                <td><strong>${escapeHTML(i.role)}</strong></td>
+                <td>${escapeHTML(i.level)}</td>
+                <td><span class="pill pill-accent">${i.code}</span></td>
+                <td>${i.numQuestions}</td>
+                <td class="muted small">${fmtDate(i.createdAt)}</td>
+                <td>${sCount}</td>
+                <td>
+                  <button class="btn btn-secondary btn-sm" data-copy="${i.code}">Copy link</button>
+                  <button class="btn btn-ghost btn-sm" data-del="${i.id}">Delete</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    tabBody.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+      const url = location.origin + location.pathname + '?code=' + b.dataset.copy;
+      await navigator.clipboard.writeText(url);
+      toast('Candidate link copied');
+    });
+    tabBody.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      if (await confirmModal({ title: 'Delete interview slot?', body: 'This removes the slot. Candidate sessions are kept.', danger: true, okText: 'Delete' })) {
+        State.interviews = State.interviews.filter(x => x.id !== b.dataset.del);
+        renderAdminHome(app);
+      }
+    });
+  }
+
+  function renderSessions() {
+    if (!sessions.length) {
+      tabBody.innerHTML = `<div class="card empty"><h3 style="margin-bottom:8px;">No candidate sessions yet</h3><p class="muted">Share an interview link. Sessions will show up as candidates take them.</p></div>`;
+      return;
+    }
+    tabBody.innerHTML = `
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Candidate</th><th>Interview</th><th>Status</th><th>Score</th><th>Submitted</th><th></th></tr></thead>
+          <tbody>
+            ${sessions.slice().reverse().map(s => {
+              const iv = interviews.find(x => x.id === s.interviewId);
+              const status = s.status === 'analyzed' ? `<span class="pill pill-success">Analyzed</span>`
+                : s.status === 'in_progress' ? `<span class="pill pill-warn">In progress</span>`
+                : s.status === 'submitted' ? `<span class="pill pill-warn">Awaiting analysis</span>`
+                : `<span class="pill">${s.status}</span>`;
+              const score = s.analysis?.overall_score != null
+                ? `<strong>${s.analysis.overall_score}</strong><span class="muted">/100</span>` : '—';
+              return `<tr>
+                <td><strong>${escapeHTML(s.candidate?.fullName||'(unknown)')}</strong><div class="muted small">${escapeHTML(s.candidate?.email||'')}</div></td>
+                <td>${escapeHTML(iv?.role||'(deleted)')}</td>
+                <td>${status}</td>
+                <td>${score}</td>
+                <td class="muted small">${s.submittedAt ? fmtDate(s.submittedAt) : '—'}</td>
+                <td><button class="btn btn-secondary btn-sm" data-view="${s.id}">View</button></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    tabBody.querySelectorAll('[data-view]').forEach(b => b.onclick = () => Router.go('admin-view', { id: b.dataset.view }));
+  }
+  renderTab('slots');
+}
+
+function renderAdminNew(app) {
+  app.innerHTML = `
+    ${topbar({ right: adminTopRight() })}
+    <div class="container container-narrow">
+      <a href="#" id="back" class="small">← Back to dashboard</a>
+      <h1 style="margin-top:8px;">New interview slot</h1>
+      <p class="muted mb-3">Define the role and evaluation focus. Atrium will generate adaptive questions for each candidate based on their resume.</p>
+      <div class="card">
+        <div class="grid-2">
+          <div class="field"><label>Role title</label><input id="role" placeholder="e.g. Senior Backend Engineer" /></div>
+          <div class="field"><label>Seniority level</label>
+            <select id="level">
+              <option>Intern</option><option>Junior</option><option selected>Mid</option><option>Senior</option><option>Staff/Principal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Required skills (comma separated)</label>
+          <input id="skills" placeholder="e.g. Python, distributed systems, SQL, AWS" />
+        </div>
+        <div class="field"><label>Focus areas / what to evaluate</label>
+          <textarea id="focus" rows="3" placeholder="e.g. system design depth, code quality reasoning, communication clarity, problem decomposition"></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Number of questions</label>
+            <input id="numQ" type="number" min="3" max="15" value="6" />
+          </div>
+          <div class="field"><label>Time per question (minutes)</label>
+            <input id="timeQ" type="number" min="1" max="15" value="4" />
+          </div>
+        </div>
+        <div class="field"><label>Additional notes (optional)</label>
+          <textarea id="notes" rows="2" placeholder="e.g. focus on AWS over GCP; ask one behavioral question on conflict"></textarea>
+        </div>
+        <div class="alert alert-info">An invite code will be generated. Share the link with candidates.</div>
+        <div class="row" style="margin-top:18px; justify-content:flex-end;">
+          <button class="btn btn-secondary" id="cancel">Cancel</button>
+          <button class="btn btn-primary" id="create">Create interview slot</button>
+        </div>
+      </div>
+    </div>`;
+  attachAdminTopbar();
+  $('#back').onclick = e => { e.preventDefault(); Router.go('admin-home'); };
+  $('#cancel').onclick = () => Router.go('admin-home');
+  $('#create').onclick = () => {
+    const role = $('#role').value.trim();
+    if (!role) return toast('Role title is required', 'error');
+    const iv = {
+      id: uid('iv_'),
+      code: code6(),
+      role,
+      level: $('#level').value,
+      skills: $('#skills').value.split(',').map(s=>s.trim()).filter(Boolean),
+      focus: $('#focus').value.trim(),
+      notes: $('#notes').value.trim(),
+      numQuestions: Math.max(3, Math.min(15, parseInt($('#numQ').value) || 6)),
+      timePerQ: Math.max(1, Math.min(15, parseInt($('#timeQ').value) || 4)),
+      createdAt: Date.now(),
+    };
+    State.interviews = [...State.interviews, iv];
+    toast('Interview slot created', 'success');
+    // Show link in modal
+    const link = location.origin + location.pathname + '?code=' + iv.code;
+    openModal(`
+      <div class="modal-head"><h3>Interview slot ready</h3><button class="close-x" data-act="close">&times;</button></div>
+      <div class="modal-body">
+        <p>Share this link with the candidate:</p>
+        <div class="code-box">${escapeHTML(link)}</div>
+        <p class="muted small mt-2">Or send them just the invite code: <strong>${iv.code}</strong>.</p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" id="copyLnk">Copy link</button>
+        <button class="btn btn-primary" id="okGo">Done</button>
+      </div>`);
+    setTimeout(() => {
+      $('#copyLnk').onclick = async () => { await navigator.clipboard.writeText(link); toast('Copied'); };
+      $('#okGo').onclick = () => { closeModal(); Router.go('admin-home'); };
+    }, 30);
+  };
+}
+
+function renderAdminSettings(app) {
+  const cfg = State.config;
+  const a = State.admins[0];
+  app.innerHTML = `
+    ${topbar({ right: adminTopRight() })}
+    <div class="container container-narrow">
+      <a href="#" id="back" class="small">← Back to dashboard</a>
+      <h1 style="margin-top:8px;">Settings</h1>
+      <p class="muted mb-3">Configure your Claude account and admin password.</p>
+
+      <div class="card">
+        <h3 style="margin-bottom:14px;">Claude API</h3>
+        <div class="alert alert-warn mb-2">
+          The browser-direct mode stores your API key in this browser's localStorage. For production use, run the included proxy on your server instead, and only enter the proxy URL here.
+        </div>
+        <div class="field"><label>Mode</label>
+          <select id="mode">
+            <option value="direct" ${!cfg.useProxy?'selected':''}>Direct from browser (uses anthropic-dangerous-direct-browser-access)</option>
+            <option value="proxy" ${cfg.useProxy?'selected':''}>Through a proxy server (recommended)</option>
+          </select>
+        </div>
+        <div class="field" id="apiKeyField" style="${cfg.useProxy?'display:none':''}">
+          <label>Anthropic API key</label>
+          <input id="apiKey" type="password" placeholder="sk-ant-..." value="${escapeHTML(cfg.apiKey||'')}" />
+          <p class="xsmall muted" style="margin-top:6px;">Get one at console.anthropic.com → Settings → API Keys.</p>
+        </div>
+        <div class="field" id="proxyField" style="${cfg.useProxy?'':'display:none'}">
+          <label>Proxy URL</label>
+          <input id="proxyUrl" placeholder="https://your-proxy.example.com/claude" value="${escapeHTML(cfg.proxyUrl||'')}" />
+        </div>
+        <div class="field"><label>Model</label>
+          <select id="model">
+            <option value="claude-opus-4-7" ${cfg.model==='claude-opus-4-7'?'selected':''}>Claude Opus 4.7 — best analysis</option>
+            <option value="claude-sonnet-4-6" ${cfg.model==='claude-sonnet-4-6'?'selected':''}>Claude Sonnet 4.6 — balanced (recommended)</option>
+            <option value="claude-haiku-4-5-20251001" ${cfg.model==='claude-haiku-4-5-20251001'?'selected':''}>Claude Haiku 4.5 — fastest & cheapest</option>
+          </select>
+        </div>
+        <div class="row" style="justify-content:flex-end; gap:10px;">
+          <button class="btn btn-secondary" id="testApi">Test connection</button>
+          <button class="btn btn-primary" id="saveApi">Save</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:14px;">Admin account</h3>
+        <div class="grid-2">
+          <div class="field"><label>Username</label><input id="adUser" value="${escapeHTML(a.username)}" /></div>
+          <div class="field"><label>Display name</label><input id="adName" value="${escapeHTML(a.name)}" /></div>
+        </div>
+        <div class="field"><label>New password (leave blank to keep)</label><input id="adPass" type="password" placeholder="••••••••" /></div>
+        <div class="row" style="justify-content:flex-end;">
+          <button class="btn btn-primary" id="saveAd">Save account</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:14px;">Data</h3>
+        <p class="muted small">All interview data is stored in this browser. Export a backup or clear data here.</p>
+        <div class="row" style="gap:10px;">
+          <button class="btn btn-secondary" id="exportBtn">Export all data (JSON)</button>
+          <button class="btn btn-danger" id="wipeBtn">Wipe all data</button>
+        </div>
+      </div>
+    </div>`;
+  attachAdminTopbar();
+  $('#back').onclick = e => { e.preventDefault(); Router.go('admin-home'); };
+
+  $('#mode').onchange = e => {
+    const useProxy = e.target.value === 'proxy';
+    $('#apiKeyField').style.display = useProxy ? 'none' : '';
+    $('#proxyField').style.display = useProxy ? '' : 'none';
+  };
+  $('#saveApi').onclick = () => {
+    const mode = $('#mode').value;
+    State.config = {
+      ...State.config,
+      useProxy: mode === 'proxy',
+      apiKey: $('#apiKey').value.trim(),
+      proxyUrl: $('#proxyUrl').value.trim(),
+      model: $('#model').value,
+    };
+    toast('Saved', 'success');
+  };
+  $('#testApi').onclick = async () => {
+    try {
+      $('#testApi').innerHTML = '<span class="spinner"></span> Testing...';
+      $('#testApi').disabled = true;
+      const out = await callClaude({ system: 'Reply with exactly "OK".', messages: [{role:'user', content:'ping'}], maxTokens: 10 });
+      toast(out.trim() === 'OK' ? 'Connection OK' : 'Got: ' + out.slice(0,60), 'success');
+    } catch(e) { toast(e.message, 'error'); }
+    finally { $('#testApi').innerHTML = 'Test connection'; $('#testApi').disabled = false; }
+  };
+  $('#saveAd').onclick = () => {
+    const u = $('#adUser').value.trim();
+    const n = $('#adName').value.trim();
+    const p = $('#adPass').value;
+    const list = State.admins.slice();
+    list[0] = { username: u, password: p || list[0].password, name: n || u };
+    State.admins = list;
+    State.auth = { ...State.auth, username: u, name: n || u };
+    toast('Account updated', 'success');
+  };
+  $('#exportBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify({
+      interviews: State.interviews, sessions: State.sessions, config: { ...State.config, apiKey: '***' }, exportedAt: Date.now()
+    }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'atrium-export-' + Date.now() + '.json'; a.click();
+    URL.revokeObjectURL(url);
+  };
+  $('#wipeBtn').onclick = async () => {
+    if (await confirmModal({ title: 'Wipe all data?', body: 'All interviews and sessions will be deleted from this browser.', danger:true, okText:'Wipe everything' })) {
+      State.interviews = []; State.sessions = []; toast('Wiped', 'success'); Router.go('admin-home');
+    }
+  };
+}
+
+function renderAdminView(app, id) {
+  const s = State.sessions.find(x => x.id === id);
+  if (!s) { Router.go('admin-home'); return; }
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+  const A = s.analysis;
+
+  app.innerHTML = `
+    ${topbar({ right: adminTopRight() })}
+    <div class="container">
+      <a href="#" id="back" class="small">← Back to dashboard</a>
+      <div class="row-between mb-2" style="margin-top:8px;">
+        <div>
+          <h1>${escapeHTML(s.candidate?.fullName||'Candidate')}</h1>
+          <p class="muted">${escapeHTML(s.candidate?.email||'')} · ${escapeHTML(iv?.role||'')} ${iv?.level ? '· ' + escapeHTML(iv.level) : ''}</p>
+        </div>
+        <div class="row gap-sm">
+          ${s.status === 'submitted' ? `<button class="btn btn-primary" id="analyzeBtn">Run analysis</button>` : ''}
+          ${A ? `<button class="btn btn-secondary" id="reportBtn">Download report</button>` : ''}
+        </div>
+      </div>
+
+      ${!A ? `<div class="alert alert-warn mb-2">Not yet analyzed. ${s.status === 'in_progress' ? 'Candidate still in progress.' : 'Click "Run analysis" to score this session with Claude.'}</div>` : ''}
+
+      ${A ? `
+        <div class="card mb-2">
+          <h3 style="margin-bottom:12px;">Overall</h3>
+          <div class="row" style="gap:20px; align-items:flex-end;">
+            <div>
+              <div class="stat-label">Overall score</div>
+              <div style="font-family:'Fraunces',serif; font-size:54px; line-height:1;">${A.overall_score}<span style="font-size:18px; color:var(--text-muted);">/100</span></div>
+            </div>
+            <div style="flex:1;"><div class="stat-label">Recommendation</div><div><strong style="font-size:18px;">${escapeHTML(A.recommendation||'')}</strong></div></div>
+          </div>
+          <div class="divider"></div>
+          <div class="score-grid">
+            ${Object.entries(A.scores||{}).map(([k,v]) => `
+              <div class="score-cell"><div class="score-label">${escapeHTML(k.replace(/_/g,' '))}</div><div class="score-num">${v}<span style="font-size:13px; color:var(--text-muted);">/100</span></div></div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 style="margin-bottom:10px;">Strengths</h3>
+            <ul style="margin:0; padding-left:18px;">${(A.strengths||[]).map(x => `<li>${escapeHTML(x)}</li>`).join('')}</ul>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom:10px;">Concerns</h3>
+            <ul style="margin:0; padding-left:18px;">${(A.concerns||[]).map(x => `<li>${escapeHTML(x)}</li>`).join('')}</ul>
+          </div>
+        </div>
+
+        <div class="card mt-2">
+          <h3 style="margin-bottom:10px;">Summary</h3>
+          <p>${escapeHTML(A.summary||'')}</p>
+        </div>
+
+        ${A.communication_notes ? `<div class="card"><h3 style="margin-bottom:10px;">Communication</h3><p>${escapeHTML(A.communication_notes)}</p></div>` : ''}
+        ${A.technical_notes ? `<div class="card"><h3 style="margin-bottom:10px;">Technical depth</h3><p>${escapeHTML(A.technical_notes)}</p></div>` : ''}
+        ${A.next_steps ? `<div class="card"><h3 style="margin-bottom:10px;">Suggested next steps</h3><p>${escapeHTML(A.next_steps)}</p></div>` : ''}
+      ` : ''}
+
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Resume</h3>
+        ${s.resumeText ? `<details><summary class="small muted" style="cursor:pointer;">View extracted resume text</summary><pre style="white-space:pre-wrap; font-family:inherit; background:var(--surface-2); padding:14px; border-radius:6px; margin-top:10px; font-size:13px;">${escapeHTML(s.resumeText)}</pre></details>` : '<p class="muted">No resume uploaded.</p>'}
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:14px;">Q&amp;A transcript</h3>
+        ${(s.answers||[]).map((a,i) => `
+          <div style="border-left:3px solid var(--accent); padding-left:14px; margin-bottom:18px;">
+            <div class="q-number">Question ${i+1}</div>
+            <div style="font-family:'Fraunces',serif; font-size:17px; margin:4px 0 10px;">${escapeHTML(a.question)}</div>
+            <div class="small muted" style="margin-bottom:4px;">Candidate's spoken/typed answer:</div>
+            <div style="background:var(--surface-2); padding:12px; border-radius:6px; white-space:pre-wrap; font-size:14px;">${escapeHTML(a.response||'(no response)')}</div>
+            ${a.recordingBlobUrl ? `<div style="margin-top:8px;"><video src="${a.recordingBlobUrl}" controls style="max-width:100%; border-radius:6px;"></video></div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  attachAdminTopbar();
+  $('#back').onclick = e => { e.preventDefault(); Router.go('admin-home'); };
+  if ($('#analyzeBtn')) $('#analyzeBtn').onclick = async () => {
+    $('#analyzeBtn').innerHTML = '<span class="spinner"></span> Analyzing...';
+    $('#analyzeBtn').disabled = true;
+    try {
+      await analyzeSession(s.id);
+      toast('Analysis complete', 'success');
+      renderAdminView(app, s.id);
+    } catch(e) { toast(e.message, 'error'); $('#analyzeBtn').innerHTML = 'Run analysis'; $('#analyzeBtn').disabled = false; }
+  };
+  if ($('#reportBtn')) $('#reportBtn').onclick = () => downloadReport(s);
+}
+
+/* ============================ CANDIDATE FLOW ============================ */
+function renderCandidateEntry(app, code) {
+  const iv = State.interviews.find(x => x.code === (code||'').toUpperCase());
+  if (!iv) {
+    app.innerHTML = `
+      ${topbar({})}
+      <div class="container container-narrow">
+        <div class="card empty">
+          <h2>Invalid invite code</h2>
+          <p class="muted">We couldn't find an interview for code <strong>${escapeHTML(code||'')}</strong>. Double-check the link your recruiter sent.</p>
+          <button class="btn btn-secondary mt-2" id="b">Back</button>
+        </div>
+      </div>`;
+    $('#b').onclick = () => Router.go('login');
+    return;
+  }
+
+  app.innerHTML = `
+    ${topbar({ subtitle: 'Candidate' })}
+    <div class="container container-narrow">
+      <span class="auth-hero-tag">Invitation</span>
+      <h1 style="margin-top:8px;">You're invited to interview for <em>${escapeHTML(iv.role)}</em></h1>
+      <p class="muted mb-3">This interview is AI-assisted. You'll record short video responses to ${iv.numQuestions} questions tailored to your background. Plan for about ${iv.numQuestions * iv.timePerQ} minutes.</p>
+
+      <div class="card">
+        <h3 style="margin-bottom:14px;">Before you start</h3>
+        <ul style="margin:0; padding-left:18px; color:var(--text-muted);">
+          <li>Use a laptop or desktop in a quiet, well-lit place.</li>
+          <li>You'll need to grant camera and microphone access.</li>
+          <li>You can type your answer in addition to speaking.</li>
+          <li>Your video is recorded and you can download a copy at the end.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:14px;">Your details</h3>
+        <div class="grid-2">
+          <div class="field"><label>Full name</label><input id="fn" /></div>
+          <div class="field"><label>Email</label><input id="em" type="email" /></div>
+          <div class="field"><label>Phone</label><input id="ph" /></div>
+          <div class="field"><label>Current location</label><input id="loc" /></div>
+          <div class="field"><label>Years of experience</label><input id="yrs" type="number" min="0" max="60" /></div>
+          <div class="field"><label>LinkedIn / portfolio (optional)</label><input id="link" placeholder="https://..." /></div>
+        </div>
+        <div class="field"><label>Why are you interested in this role? (1–3 sentences)</label>
+          <textarea id="why" rows="3"></textarea>
+        </div>
+        <div class="row" style="justify-content:flex-end;">
+          <button class="btn btn-primary" id="continueBtn">Continue →</button>
+        </div>
+      </div>
+    </div>`;
+
+  $('#continueBtn').onclick = () => {
+    const fullName = $('#fn').value.trim();
+    const email = $('#em').value.trim();
+    if (!fullName || !email) return toast('Name and email are required', 'error');
+    const session = {
+      id: uid('s_'),
+      interviewId: iv.id,
+      candidate: {
+        fullName, email,
+        phone: $('#ph').value.trim(),
+        location: $('#loc').value.trim(),
+        years: $('#yrs').value.trim(),
+        link: $('#link').value.trim(),
+        why: $('#why').value.trim(),
+      },
+      answers: [],
+      status: 'created',
+      createdAt: Date.now(),
+    };
+    State.sessions = [...State.sessions, session];
+    Router.go('candidate-resume', { id: session.id });
+  };
+}
+
+function renderCandidateResume(app, id) {
+  const s = State.sessions.find(x => x.id === id);
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+  app.innerHTML = `
+    ${topbar({ subtitle: 'Candidate · ' + escapeHTML(s.candidate.fullName) })}
+    <div class="container container-narrow">
+      <div class="progress mb-2"><div class="progress-fill" style="width:33%"></div></div>
+      <p class="xsmall muted">Step 2 of 3 — Resume</p>
+      <h1 style="margin-top:6px;">Upload your resume</h1>
+      <p class="muted mb-3">We extract the text only — used to tailor your questions. PDF or plain text.</p>
+
+      <div class="card">
+        <input id="file" type="file" accept=".pdf,.txt,.md" style="margin-bottom:10px;" />
+        <div id="parseStatus" class="small muted"></div>
+        <details style="margin-top:14px;"><summary class="small muted" style="cursor:pointer;">Or paste resume text directly</summary>
+          <textarea id="pasteTxt" rows="8" style="margin-top:10px;" placeholder="Paste your resume text..."></textarea>
+        </details>
+        <div class="row" style="justify-content:space-between; margin-top:18px;">
+          <button class="btn btn-ghost" id="skip">Skip (not recommended)</button>
+          <button class="btn btn-primary" id="next" disabled>Continue →</button>
+        </div>
+      </div>
+    </div>`;
+
+  let extracted = '';
+  function setExtracted(t) {
+    extracted = (t||'').trim();
+    $('#next').disabled = !extracted;
+    $('#parseStatus').innerHTML = extracted ? `<span class="pill pill-success">${extracted.length.toLocaleString()} characters extracted</span>` : '';
+  }
+
+  $('#file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    $('#parseStatus').innerHTML = '<span class="spinner"></span> Parsing...';
+    try {
+      if (f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')) {
+        const buf = await f.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+        let txt = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          txt += content.items.map(x => x.str).join(' ') + '\n\n';
+        }
+        setExtracted(txt);
+      } else {
+        setExtracted(await f.text());
+      }
+    } catch(err) { toast('Could not parse file: ' + err.message, 'error'); setExtracted(''); }
+  };
+  $('#pasteTxt')?.addEventListener('input', e => setExtracted(e.target.value));
+  $('#skip').onclick = () => goNext('');
+  $('#next').onclick = () => goNext(extracted || ($('#pasteTxt')?.value || ''));
+  function goNext(text) {
+    const list = State.sessions.slice();
+    const idx = list.findIndex(x => x.id === id);
+    list[idx] = { ...list[idx], resumeText: text };
+    State.sessions = list;
+    Router.go('candidate-check', { id });
+  }
+}
+
+function renderCandidateCheck(app, id) {
+  const s = State.sessions.find(x => x.id === id);
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+  app.innerHTML = `
+    ${topbar({ subtitle: 'Candidate · ' + escapeHTML(s.candidate.fullName) })}
+    <div class="container container-narrow">
+      <div class="progress mb-2"><div class="progress-fill" style="width:66%"></div></div>
+      <p class="xsmall muted">Step 3 of 3 — Device check</p>
+      <h1 style="margin-top:6px;">Let's check your camera and mic</h1>
+      <p class="muted mb-3">Grant access when prompted. You'll see your preview below.</p>
+
+      <div class="card">
+        <div class="video-frame" style="aspect-ratio: 16/9; max-width: 640px; margin:0 auto;">
+          <video id="prev" autoplay playsinline muted></video>
+        </div>
+        <div id="checkStatus" class="small muted" style="text-align:center; margin-top:14px;">Click "Test devices" to start.</div>
+        <div class="row" style="justify-content:center; gap:10px; margin-top:14px;">
+          <button class="btn btn-secondary" id="test">Test devices</button>
+          <button class="btn btn-primary" id="start" disabled>I'm ready — start interview</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:10px;">Quick brief</h3>
+        <p class="muted small mb-2">You'll get ${iv.numQuestions} questions, about ${iv.timePerQ} minute(s) each. For each:</p>
+        <ul style="margin:0; padding-left:18px; color:var(--text-muted); font-size:14px;">
+          <li>Read the question.</li>
+          <li>Hit Record and speak your answer. You can also type notes.</li>
+          <li>Hit Stop & Next when you're done.</li>
+          <li>At the end, you'll be prompted to download your video.</li>
+        </ul>
+      </div>
+    </div>`;
+
+  let stream = null;
+  $('#test').onclick = async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true });
+      $('#prev').srcObject = stream;
+      $('#checkStatus').innerHTML = '<span class="pill pill-success">Camera and mic working</span>';
+      $('#start').disabled = false;
+    } catch(e) { $('#checkStatus').innerHTML = '<span class="pill pill-danger">Permission denied or no device</span>'; }
+  };
+  $('#start').onclick = async () => {
+    // Generate questions before going in
+    $('#start').innerHTML = '<span class="spinner"></span> Preparing questions...';
+    $('#start').disabled = true;
+    try {
+      await generateQuestions(id);
+      const list = State.sessions.slice();
+      const idx = list.findIndex(x => x.id === id);
+      list[idx] = { ...list[idx], status: 'in_progress', startedAt: Date.now() };
+      State.sessions = list;
+      // stop preview, interview screen will reacquire
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      Router.go('candidate-int', { id });
+    } catch(e) { toast(e.message, 'error'); $('#start').innerHTML = `I'm ready — start interview`; $('#start').disabled = false; }
+  };
+}
+
+async function generateQuestions(sessionId) {
+  const s = State.sessions.find(x => x.id === sessionId);
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+
+  const system = `You are an expert technical interviewer designing a structured interview. Output ONLY a JSON object with shape:
+{"questions":[{"text":"...","category":"introduction|technical|system_design|behavioral|communication|closing","focus":"brief"}]}
+Generate exactly ${iv.numQuestions} questions. Tailor them to the candidate's resume and the role. Include one warm-up, mostly skill/technical questions, one behavioral, and one closing. Be specific and probing.`;
+
+  const userMsg = `ROLE: ${iv.role} (${iv.level})
+KEY SKILLS: ${iv.skills.join(', ') || '(unspecified)'}
+EVAL FOCUS: ${iv.focus || '(unspecified)'}
+NOTES: ${iv.notes || '(none)'}
+
+CANDIDATE: ${s.candidate.fullName}
+YEARS: ${s.candidate.years || 'unspecified'}
+WHY: ${s.candidate.why || '(none)'}
+
+RESUME TEXT (may be empty):
+${(s.resumeText||'(no resume)').slice(0, 8000)}
+
+Produce ${iv.numQuestions} interview questions as JSON.`;
+
+  const out = await callClaude({ system, messages: [{ role:'user', content: userMsg }], maxTokens: 2000 });
+  const parsed = tryParseJSON(out);
+  let qs = parsed?.questions;
+  if (!Array.isArray(qs) || !qs.length) {
+    // fallback: derive questions from lines
+    qs = out.split('\n').filter(l => /^\s*[\-\d]/.test(l)).slice(0, iv.numQuestions).map(t => ({ text: t.replace(/^[\-\d\.\)\s]+/, '').trim(), category: 'technical' }));
+  }
+  qs = qs.slice(0, iv.numQuestions);
+
+  const list = State.sessions.slice();
+  const idx = list.findIndex(x => x.id === sessionId);
+  list[idx] = { ...list[idx], questions: qs };
+  State.sessions = list;
+}
+
+function renderCandidateInterview(app, id) {
+  const s = State.sessions.find(x => x.id === id);
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+  if (!s.questions || !s.questions.length) {
+    app.innerHTML = topbar({}) + `<div class="container"><div class="card empty"><p>Questions not ready.</p><button class="btn btn-primary" id="b">Back</button></div></div>`;
+    $('#b').onclick = () => Router.go('candidate-check', { id });
+    return;
+  }
+
+  // local interview state
+  let qIdx = 0;
+  const totalQ = s.questions.length;
+  const timeLimit = iv.timePerQ * 60; // seconds
+  let stream = null;
+  let recorder = null;
+  let chunks = [];
+  let recordingActive = false;
+  let timerInterval = null;
+  let elapsed = 0;
+  const recordings = []; // per question { blob, url, mime }
+  const transcripts = []; // textarea contents at submit
+  let recognizer = null;
+  let liveTranscript = '';
+
+  app.innerHTML = `
+    ${topbar({ subtitle: escapeHTML(s.candidate.fullName) + ' · ' + escapeHTML(iv.role) })}
+    <div class="container">
+      <div class="interview-wrap">
+        <div>
+          <div class="video-frame">
+            <video id="vid" autoplay playsinline muted></video>
+            <div class="rec-indicator hidden" id="recInd"><span class="rec-dot"></span> Recording <span id="recTime">00:00</span></div>
+          </div>
+
+          <div class="question-card">
+            <div class="row-between mb-1">
+              <span class="q-number" id="qLbl">Question 1 of ${totalQ}</span>
+              <span class="timer muted" id="timer">${formatTime(timeLimit)}</span>
+            </div>
+            <div class="q-text" id="qText">…</div>
+            <label>Your notes / typed answer (optional but recommended)</label>
+            <textarea id="answer" rows="5" placeholder="Speak your answer. You can also type key points here — both your typed notes and your spoken transcript will be evaluated."></textarea>
+            <div id="liveT" class="small muted" style="margin-top:8px;"></div>
+
+            <div class="row" style="margin-top:14px; justify-content:space-between;">
+              <div class="row gap-sm">
+                <button class="btn btn-danger" id="recBtn">● Start recording</button>
+                <button class="btn btn-secondary" id="stopBtn" disabled>■ Stop</button>
+              </div>
+              <button class="btn btn-primary" id="nextBtn">Save &amp; next →</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="side-card">
+            <h3 style="margin-bottom:10px;">Progress</h3>
+            <div class="progress" style="margin-bottom:8px;"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+            <div class="small muted" id="progLbl">0 of ${totalQ} answered</div>
+          </div>
+          <div class="side-card">
+            <h3 style="margin-bottom:10px;">Tips</h3>
+            <ul style="margin:0; padding-left:18px; font-size:13px; color:var(--text-muted);">
+              <li>Speak naturally — clarity matters more than perfection.</li>
+              <li>Structure: problem → approach → trade-offs → result.</li>
+              <li>If you run out of time, summarize and move on.</li>
+            </ul>
+          </div>
+          <div class="side-card">
+            <h3 style="margin-bottom:10px;">All questions</h3>
+            <ol id="qList" style="margin:0; padding-left:20px; font-size:13px;"></ol>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Acquire stream
+  (async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true });
+      $('#vid').srcObject = stream;
+    } catch(e) { toast('Camera/mic access required.', 'error'); }
+  })();
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2,'0');
+    const s = (sec % 60).toString().padStart(2,'0');
+    return `${m}:${s}`;
+  }
+
+  function loadQ() {
+    const q = s.questions[qIdx];
+    $('#qLbl').textContent = `Question ${qIdx+1} of ${totalQ}` + (q.category ? ' · ' + q.category : '');
+    $('#qText').textContent = q.text;
+    $('#answer').value = transcripts[qIdx] || '';
+    $('#progFill').style.width = (qIdx / totalQ * 100) + '%';
+    $('#progLbl').textContent = `${qIdx} of ${totalQ} answered`;
+    $('#qList').innerHTML = s.questions.map((qq, i) => `<li style="${i===qIdx?'font-weight:600;color:var(--text);':'color:var(--text-muted);'}">${escapeHTML(qq.text.slice(0,80))}${qq.text.length>80?'…':''}</li>`).join('');
+    elapsed = 0; $('#timer').textContent = formatTime(timeLimit);
+  }
+  loadQ();
+
+  function startRecording() {
+    if (!stream) return toast('No camera/mic stream', 'error');
+    chunks = [];
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus'
+      : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
+    recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    recorder.start();
+    recordingActive = true;
+    $('#recInd').classList.remove('hidden');
+    $('#recBtn').disabled = true;
+    $('#stopBtn').disabled = false;
+
+    // Try live speech recognition
+    liveTranscript = '';
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR) {
+      try {
+        recognizer = new SR();
+        recognizer.continuous = true; recognizer.interimResults = true; recognizer.lang = 'en-US';
+        recognizer.onresult = (e) => {
+          let interim = '', finalT = '';
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            const r = e.results[i];
+            if (r.isFinal) finalT += r[0].transcript + ' ';
+            else interim += r[0].transcript;
+          }
+          if (finalT) liveTranscript += finalT;
+          $('#liveT').innerHTML = '<em>Live transcript: ' + escapeHTML((liveTranscript + interim).slice(-300)) + '</em>';
+        };
+        recognizer.onerror = () => {};
+        recognizer.start();
+      } catch(e) {}
+    } else {
+      $('#liveT').innerHTML = '<em>Speech-to-text not supported in this browser — please type your answer in the box below.</em>';
+    }
+
+    // timer
+    elapsed = 0; $('#timer').textContent = formatTime(timeLimit);
+    timerInterval = setInterval(() => {
+      elapsed++;
+      const remain = Math.max(0, timeLimit - elapsed);
+      $('#timer').textContent = formatTime(remain);
+      $('#recTime').textContent = formatTime(elapsed);
+      if (remain <= 0) { stopRecording(); }
+    }, 1000);
+  }
+  function stopRecording() {
+    if (!recordingActive) return;
+    recorder && recorder.state !== 'inactive' && recorder.stop();
+    recordingActive = false;
+    clearInterval(timerInterval);
+    $('#recInd').classList.add('hidden');
+    $('#recBtn').disabled = false;
+    $('#stopBtn').disabled = true;
+    if (recognizer) { try { recognizer.stop(); } catch(e){} }
+    return new Promise(resolve => {
+      const done = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        recordings[qIdx] = { blob, url, mime: 'video/webm' };
+        if (liveTranscript && !$('#answer').value.includes(liveTranscript.trim())) {
+          const cur = $('#answer').value;
+          $('#answer').value = (cur ? cur + '\n\n[Live transcript]\n' : '[Live transcript]\n') + liveTranscript.trim();
+        }
+        resolve();
+      };
+      if (recorder && recorder.state !== 'inactive') recorder.onstop = done;
+      else done();
+    });
+  }
+
+  $('#recBtn').onclick = startRecording;
+  $('#stopBtn').onclick = async () => { await stopRecording(); };
+
+  $('#nextBtn').onclick = async () => {
+    if (recordingActive) await stopRecording();
+    transcripts[qIdx] = $('#answer').value.trim();
+    if (qIdx < totalQ - 1) {
+      qIdx++;
+      $('#liveT').innerHTML = '';
+      loadQ();
+    } else {
+      // Finalize
+      await finalize();
+    }
+  };
+
+  async function finalize() {
+    if (recordingActive) await stopRecording();
+    transcripts[qIdx] = $('#answer').value.trim();
+
+    // Build answers array
+    const answers = s.questions.map((q, i) => ({
+      question: q.text,
+      category: q.category || '',
+      response: transcripts[i] || '',
+      recordingBlobUrl: recordings[i]?.url || null,
+    }));
+
+    // Save to state
+    const list = State.sessions.slice();
+    const idx = list.findIndex(x => x.id === id);
+    list[idx] = { ...list[idx], answers, status: 'submitted', submittedAt: Date.now() };
+    State.sessions = list;
+
+    // Ask user to download recordings
+    const wantDl = await confirmModal({
+      title: 'Download your recordings?',
+      body: '<p>Your video answers were recorded locally. We recommend downloading them now — they exist only in your browser memory.</p>',
+      okText: 'Yes, download',
+    });
+    if (wantDl) {
+      for (let i = 0; i < recordings.length; i++) {
+        const rec = recordings[i];
+        if (!rec) continue;
+        const a = document.createElement('a');
+        a.href = rec.url;
+        a.download = `${s.candidate.fullName.replace(/\s+/g,'_')}_Q${i+1}.webm`;
+        document.body.appendChild(a); a.click(); a.remove();
+        await sleep(400);
+      }
+      toast('Downloads started', 'success');
+    }
+
+    // Try to run analysis automatically
+    try {
+      await analyzeSession(id);
+    } catch(e) {
+      // OK to fail — admin can analyze later
+      console.warn('Auto-analysis failed:', e.message);
+    }
+
+    Router.go('candidate-done', { id });
+  }
+}
+
+function renderCandidateDone(app, id) {
+  const s = State.sessions.find(x => x.id === id);
+  app.innerHTML = `
+    ${topbar({ subtitle: 'Candidate · ' + escapeHTML(s.candidate.fullName) })}
+    <div class="container container-narrow">
+      <div class="card" style="text-align:center; padding:48px 28px;">
+        <div class="brand-mark" style="margin:0 auto 18px; width:48px; height:48px; font-size:20px;">✓</div>
+        <h1>Thank you, ${escapeHTML(s.candidate.fullName.split(' ')[0])}.</h1>
+        <p class="muted" style="font-size:16px; max-width:480px; margin:10px auto 0;">Your interview has been submitted. The hiring team will review your responses and follow up via email.</p>
+        <div class="divider"></div>
+        <p class="small muted">You can safely close this tab. Your recordings (if downloaded) are saved to your device.</p>
+        <button class="btn btn-secondary mt-2" id="dlAgain">Download my recordings again</button>
+      </div>
+    </div>`;
+  $('#dlAgain').onclick = () => {
+    // Recordings only live in memory for this tab's lifetime; if URL revoked, this won't work after refresh.
+    let any = false;
+    (s.answers || []).forEach((a, i) => {
+      if (a.recordingBlobUrl) {
+        any = true;
+        const link = document.createElement('a');
+        link.href = a.recordingBlobUrl;
+        link.download = `${s.candidate.fullName.replace(/\s+/g,'_')}_Q${i+1}.webm`;
+        document.body.appendChild(link); link.click(); link.remove();
+      }
+    });
+    if (!any) toast('Recordings no longer in memory (closed/refreshed). Ask the recruiter for a copy.', 'error');
+  };
+}
+
+/* ============================ ANALYSIS ============================ */
+async function analyzeSession(id) {
+  const list = State.sessions.slice();
+  const idx = list.findIndex(x => x.id === id);
+  const s = list[idx];
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+
+  const system = `You are a rigorous senior interviewer producing a fair, calibrated evaluation. Output ONLY valid JSON with this shape:
+{
+  "overall_score": <0-100 integer>,
+  "recommendation": "Strong hire | Hire | Lean hire | No hire | Strong no hire",
+  "scores": {
+    "technical_skills": <0-100>,
+    "communication": <0-100>,
+    "problem_solving": <0-100>,
+    "depth_of_experience": <0-100>,
+    "role_fit": <0-100>,
+    "delivery_quality": <0-100>
+  },
+  "strengths": ["...", "..."],
+  "concerns": ["...", "..."],
+  "communication_notes": "1-2 paragraphs assessing clarity, structure, vocabulary, listening, and articulation based on the responses",
+  "technical_notes": "1-2 paragraphs on technical depth, accuracy, and reasoning",
+  "summary": "3-5 sentence overall summary",
+  "next_steps": "Suggested next steps for the hiring team"
+}
+Score relative to the stated level (${iv.level}). Be specific and avoid platitudes.`;
+
+  const payload = `ROLE: ${iv.role} (${iv.level})
+KEY SKILLS: ${iv.skills.join(', ')}
+EVAL FOCUS: ${iv.focus}
+NOTES: ${iv.notes}
+
+CANDIDATE BACKGROUND:
+Name: ${s.candidate.fullName}
+Years: ${s.candidate.years}
+Why interested: ${s.candidate.why}
+
+RESUME (extracted text, may be incomplete):
+${(s.resumeText||'(none)').slice(0, 6000)}
+
+INTERVIEW Q&A (typed notes + speech-to-text transcripts):
+${s.answers.map((a,i) => `--- Q${i+1} [${a.category||'general'}] ---\n${a.question}\n\n>>> Response:\n${a.response || '(no response)'}`).join('\n\n')}
+
+Produce the JSON evaluation now.`;
+
+  const out = await callClaude({ system, messages: [{ role:'user', content: payload }], maxTokens: 2500 });
+  const parsed = tryParseJSON(out);
+  if (!parsed) throw new Error('Could not parse analysis output. Try again.');
+
+  list[idx] = { ...s, analysis: parsed, status: 'analyzed', analyzedAt: Date.now() };
+  State.sessions = list;
+  return parsed;
+}
+
+function downloadReport(s) {
+  const iv = State.interviews.find(x => x.id === s.interviewId);
+  const A = s.analysis || {};
+  const css = `
+    body { font-family: Georgia, serif; max-width: 760px; margin: 30px auto; color: #1A1A1A; padding: 0 20px; line-height:1.55;}
+    h1,h2,h3 { color:#2F4F4F; }
+    table { border-collapse: collapse; width:100%; margin: 10px 0; }
+    th, td { border:1px solid #DDD; padding:8px; font-size:14px; text-align:left; }
+    .pill { background:#E8EFEC; color:#2F4F4F; padding:2px 8px; border-radius:100px; font-size:12px; }
+    .qa { border-left:3px solid #2F4F4F; padding-left:14px; margin:14px 0; }
+    .muted { color:#666; font-size:13px;}
+  `;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Interview report — ${escapeHTML(s.candidate.fullName)}</title><style>${css}</style></head><body>
+    <h1>Interview report</h1>
+    <p class="muted">Generated ${new Date().toLocaleString()}</p>
+    <table>
+      <tr><th>Candidate</th><td>${escapeHTML(s.candidate.fullName)} (${escapeHTML(s.candidate.email)})</td></tr>
+      <tr><th>Role</th><td>${escapeHTML(iv?.role||'')} — ${escapeHTML(iv?.level||'')}</td></tr>
+      <tr><th>Submitted</th><td>${fmtDate(s.submittedAt||Date.now())}</td></tr>
+      <tr><th>Overall</th><td><strong>${A.overall_score||'—'}/100</strong> — ${escapeHTML(A.recommendation||'')}</td></tr>
+    </table>
+    <h2>Scores</h2>
+    <table>${Object.entries(A.scores||{}).map(([k,v]) => `<tr><th>${escapeHTML(k.replace(/_/g,' '))}</th><td>${v}/100</td></tr>`).join('')}</table>
+    <h2>Summary</h2><p>${escapeHTML(A.summary||'')}</p>
+    <h2>Strengths</h2><ul>${(A.strengths||[]).map(x => `<li>${escapeHTML(x)}</li>`).join('')}</ul>
+    <h2>Concerns</h2><ul>${(A.concerns||[]).map(x => `<li>${escapeHTML(x)}</li>`).join('')}</ul>
+    <h2>Communication</h2><p>${escapeHTML(A.communication_notes||'')}</p>
+    <h2>Technical depth</h2><p>${escapeHTML(A.technical_notes||'')}</p>
+    <h2>Suggested next steps</h2><p>${escapeHTML(A.next_steps||'')}</p>
+    <h2>Q&A transcript</h2>
+    ${(s.answers||[]).map((a,i) => `<div class="qa"><strong>Q${i+1}.</strong> ${escapeHTML(a.question)}<br/><br/><strong>Response:</strong><br/>${escapeHTML(a.response||'(no response)').replace(/\n/g,'<br/>')}</div>`).join('')}
+  </body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `report_${s.candidate.fullName.replace(/\s+/g,'_')}.html`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/* ============================ BOOTSTRAP ============================ */
+Router.current = getInitialRoute();
+render();
+</script>
+</body>
+</html>
