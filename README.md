@@ -33,31 +33,44 @@ Change it immediately in **Settings → Admin account**.
 
 ---
 
-## 2. Connect your Claude account
+## 2. Connect an AI provider
 
-In the app, go to **Admin → Settings → Claude API**. You have two modes.
+The app supports two providers, switchable in **Admin → Settings → AI provider**.
 
-### Mode A — Direct from browser (fastest to set up)
+### Option A — Google Gemini (free, recommended)
 
-1. Get a key from <https://console.anthropic.com> → Settings → API Keys.
-2. Paste it. Pick a model (Sonnet 4.6 recommended for cost/quality).
-3. Click **Test connection**.
+1. Go to <https://aistudio.google.com/apikey> (sign in with any Google account).
+2. Click **Create API key** → copy it. No credit card required.
+3. In the app: **Settings → Provider: Google Gemini**, paste the key, pick a model:
+   - **Gemini 2.5 Flash** — balanced, recommended.
+   - **Gemini 2.5 Flash-Lite** — fastest & highest free quota (1000 requests/day).
+   - **Gemini 2.5 Pro** — best reasoning, but only ~100 requests/day on free tier.
+4. Click **Test connection** → should say "Connection OK ✓".
 
-⚠️ The key is stored in your browser's `localStorage`. It is sent on every API call using the `anthropic-dangerous-direct-browser-access` header. **Do not** check this key into Git, and **do not** use this mode if untrusted users have access to the admin browser. Use Mode B for anything serious.
+Current free tier (May 2026): roughly 5–15 requests/minute and 100–1000 requests/day depending on model. More than enough for typical interview volumes (1 interview ≈ 8–12 requests).
 
-### Mode B — Through a proxy server (recommended for production)
+### Option B — Anthropic Claude (paid)
 
-`proxy-server.js` (included) keeps the key on a server you control.
+1. Get a key at <https://console.anthropic.com> → Settings → API Keys. Add credit to your account.
+2. In the app: **Settings → Provider: Anthropic Claude**, paste the key, pick a model (Sonnet 4.6 is the sweet spot).
+3. Test connection.
+
+### Both providers: direct vs. proxy mode
+
+- **Direct from browser** (default): the API key lives in your browser's `localStorage`. Easy. Fine for trying it out on your own machine. **Don't** use this if untrusted people can reach the admin page.
+- **Through a proxy server** (recommended for production): `proxy-server.js` (included) keeps the key on a server you control. It supports both Gemini and Claude — set `GEMINI_API_KEY` and/or `ANTHROPIC_API_KEY` as server env vars.
 
 ```bash
-# Locally:
-ANTHROPIC_API_KEY=sk-ant-... node proxy-server.js
-# proxy now on http://localhost:8787/claude
+# Run the proxy locally (Gemini only)
+GEMINI_API_KEY=AIza... node proxy-server.js
+# Or both providers
+GEMINI_API_KEY=... ANTHROPIC_API_KEY=... node proxy-server.js
+# Proxy now on http://localhost:8787/llm
 ```
 
-In the app: **Settings → Mode → "Through a proxy server"**, paste `http://localhost:8787/claude` (or your deployed proxy URL), save.
+In the app: **Settings → Mode → "Through a proxy server"**, paste `http://localhost:8787/llm`, save.
 
-Deploy the proxy anywhere Node runs (Vercel Function, Fly.io, Render, Railway, your own VPS). Set `ANTHROPIC_API_KEY` and optionally `ALLOW_ORIGIN` to your frontend domain.
+Deploy the proxy to Vercel/Render/Fly/Railway/your VPS. Set the API keys as server env vars and set `ALLOW_ORIGIN` to your frontend domain.
 
 ---
 
@@ -108,8 +121,8 @@ Drag-and-drop the folder onto <https://app.netlify.com/drop>. Done.
 | Resume parsing | PDF.js in-browser, plain text fallback |
 | Camera/mic capture | `getUserMedia` + `MediaRecorder` (WebM/VP9) |
 | Live transcription | Web Speech API (Chrome/Edge); typed fallback otherwise |
-| Question generation | Claude — adaptive to resume + role + level |
-| Scoring | Claude — JSON-structured rubric across 6 axes |
+| Question generation | Gemini or Claude — adaptive to resume + role + level |
+| Scoring | Gemini or Claude — JSON-structured rubric across 6 axes |
 
 ### Evaluation rubric (0–100 each, plus a 0–100 overall)
 
@@ -120,7 +133,7 @@ Drag-and-drop the folder onto <https://app.netlify.com/drop>. Done.
 - **Role fit** — alignment to role and level
 - **Delivery quality** — articulation, completeness, professionalism
 
-You can swap models per session in Settings. Opus for the most rigorous calibration, Sonnet for balanced cost/quality (default), Haiku for fast/cheap screening.
+You can swap models per session in Settings. For Gemini: Pro for best reasoning, Flash for balanced (default), Flash-Lite for fast/cheap screening. For Claude: Opus for the most rigorous calibration, Sonnet for balanced (default), Haiku for fast/cheap screening.
 
 ---
 

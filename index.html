@@ -260,8 +260,9 @@ if (!load(STORE_KEYS.admins, null)) {
 }
 if (!load(STORE_KEYS.config, null)) {
   save(STORE_KEYS.config, {
+    provider: 'gemini',          // 'gemini' | 'claude'
     apiKey: '',
-    model: 'claude-sonnet-4-6',
+    model: 'gemini-2.5-flash',
     proxyUrl: '',
     useProxy: false,
   });
@@ -334,19 +335,46 @@ function openModal(html) {
 }
 function closeModal() { $('#modalRoot').innerHTML = ''; }
 
-/* ----------------------------- CLAUDE API ----------------------------- */
-async function callClaude({ system, messages, maxTokens=1500 }) {
+/* ----------------------------- LLM API ----------------------------- */
+async function callLLM({ system, messages, maxTokens=1500 }) {
   const cfg = State.config;
+  // Migration: legacy config without provider defaults to claude
+  const provider = cfg.provider || (cfg.model?.startsWith('gemini') ? 'gemini' : 'claude');
+
   if (cfg.useProxy && cfg.proxyUrl) {
     const r = await fetch(cfg.proxyUrl, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: cfg.model, system, messages, max_tokens: maxTokens })
+      body: JSON.stringify({ provider, model: cfg.model, system, messages, max_tokens: maxTokens })
     });
     if (!r.ok) throw new Error('Proxy error: ' + r.status + ' ' + await r.text());
     const data = await r.json();
-    return data.content?.[0]?.text || '';
+    return data.text || data.content?.[0]?.text || '';
   }
-  if (!cfg.apiKey) throw new Error('No Claude API key configured. Open Admin → Settings.');
+
+  if (!cfg.apiKey) throw new Error('No API key configured. Open Admin → Settings.');
+
+  if (provider === 'gemini') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${cfg.model}:generateContent`;
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cfg.apiKey },
+      body: JSON.stringify({
+        system_instruction: system ? { parts: [{ text: system }] } : undefined,
+        contents: messages.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        })),
+        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 }
+      })
+    });
+    if (!r.ok) { const t = await r.text(); throw new Error('Gemini API: ' + r.status + ' — ' + t.slice(0, 300)); }
+    const data = await r.json();
+    const text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+    if (!text && data.promptFeedback?.blockReason) throw new Error('Gemini blocked the request: ' + data.promptFeedback.blockReason);
+    return text;
+  }
+
+  // Claude (Anthropic)
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -357,13 +385,13 @@ async function callClaude({ system, messages, maxTokens=1500 }) {
     },
     body: JSON.stringify({ model: cfg.model, system, messages, max_tokens: maxTokens })
   });
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error('Claude API: ' + r.status + ' — ' + t.slice(0, 300));
-  }
+  if (!r.ok) { const t = await r.text(); throw new Error('Claude API: ' + r.status + ' — ' + t.slice(0, 300)); }
   const data = await r.json();
   return data.content?.[0]?.text || '';
 }
+
+// Back-compat alias (old code calls callClaude)
+const callClaude = callLLM;
 
 function tryParseJSON(s) {
   if (!s) return null;
@@ -716,31 +744,38 @@ function renderAdminSettings(app) {
       <p class="muted mb-3">Configure your Claude account and admin password.</p>
 
       <div class="card">
-        <h3 style="margin-bottom:14px;">Claude API</h3>
+        <h3 style="margin-bottom:14px;">AI provider</h3>
+        <div class="alert alert-info mb-2">
+          Free option: <strong>Google Gemini</strong>. Get a free API key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — no credit card needed. Limits: ~15 requests/minute, 1000/day on Flash-Lite.<br/>
+          Paid option: <strong>Anthropic Claude</strong>. Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Provider</label>
+            <select id="provider">
+              <option value="gemini" ${cfg.provider==='gemini'?'selected':''}>Google Gemini (free)</option>
+              <option value="claude" ${cfg.provider==='claude'?'selected':''}>Anthropic Claude (paid)</option>
+            </select>
+          </div>
+          <div class="field"><label>Model</label>
+            <select id="model"></select>
+          </div>
+        </div>
         <div class="alert alert-warn mb-2">
-          The browser-direct mode stores your API key in this browser's localStorage. For production use, run the included proxy on your server instead, and only enter the proxy URL here.
+          Browser-direct mode stores the API key in this browser's localStorage. For production, run the included proxy server and only enter the proxy URL here.
         </div>
         <div class="field"><label>Mode</label>
           <select id="mode">
-            <option value="direct" ${!cfg.useProxy?'selected':''}>Direct from browser (uses anthropic-dangerous-direct-browser-access)</option>
+            <option value="direct" ${!cfg.useProxy?'selected':''}>Direct from browser</option>
             <option value="proxy" ${cfg.useProxy?'selected':''}>Through a proxy server (recommended)</option>
           </select>
         </div>
         <div class="field" id="apiKeyField" style="${cfg.useProxy?'display:none':''}">
-          <label>Anthropic API key</label>
-          <input id="apiKey" type="password" placeholder="sk-ant-..." value="${escapeHTML(cfg.apiKey||'')}" />
-          <p class="xsmall muted" style="margin-top:6px;">Get one at console.anthropic.com → Settings → API Keys.</p>
+          <label>API key</label>
+          <input id="apiKey" type="password" placeholder="Paste your key..." value="${escapeHTML(cfg.apiKey||'')}" />
         </div>
         <div class="field" id="proxyField" style="${cfg.useProxy?'':'display:none'}">
           <label>Proxy URL</label>
-          <input id="proxyUrl" placeholder="https://your-proxy.example.com/claude" value="${escapeHTML(cfg.proxyUrl||'')}" />
-        </div>
-        <div class="field"><label>Model</label>
-          <select id="model">
-            <option value="claude-opus-4-7" ${cfg.model==='claude-opus-4-7'?'selected':''}>Claude Opus 4.7 — best analysis</option>
-            <option value="claude-sonnet-4-6" ${cfg.model==='claude-sonnet-4-6'?'selected':''}>Claude Sonnet 4.6 — balanced (recommended)</option>
-            <option value="claude-haiku-4-5-20251001" ${cfg.model==='claude-haiku-4-5-20251001'?'selected':''}>Claude Haiku 4.5 — fastest & cheapest</option>
-          </select>
+          <input id="proxyUrl" placeholder="https://your-proxy.example.com/llm" value="${escapeHTML(cfg.proxyUrl||'')}" />
         </div>
         <div class="row" style="justify-content:flex-end; gap:10px;">
           <button class="btn btn-secondary" id="testApi">Test connection</button>
@@ -772,6 +807,30 @@ function renderAdminSettings(app) {
   attachAdminTopbar();
   $('#back').onclick = e => { e.preventDefault(); Router.go('admin-home'); };
 
+  // Model options per provider
+  const MODELS = {
+    gemini: [
+      { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash — recommended (free, balanced)' },
+      { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite — fastest & highest free quota' },
+      { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro — best reasoning (lower free quota)' },
+    ],
+    claude: [
+      { id: 'claude-opus-4-7', label: 'Claude Opus 4.7 — best analysis' },
+      { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 — balanced' },
+      { id: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 — fastest & cheapest' },
+    ],
+  };
+
+  function fillModels(provider) {
+    const sel = $('#model');
+    sel.innerHTML = MODELS[provider].map(m => `<option value="${m.id}" ${cfg.model===m.id?'selected':''}>${escapeHTML(m.label)}</option>`).join('');
+    // If current model doesn't match provider, default to first
+    if (!MODELS[provider].some(m => m.id === cfg.model)) sel.value = MODELS[provider][0].id;
+  }
+  fillModels(cfg.provider || 'gemini');
+
+  $('#provider').onchange = e => fillModels(e.target.value);
+
   $('#mode').onchange = e => {
     const useProxy = e.target.value === 'proxy';
     $('#apiKeyField').style.display = useProxy ? 'none' : '';
@@ -781,6 +840,7 @@ function renderAdminSettings(app) {
     const mode = $('#mode').value;
     State.config = {
       ...State.config,
+      provider: $('#provider').value,
       useProxy: mode === 'proxy',
       apiKey: $('#apiKey').value.trim(),
       proxyUrl: $('#proxyUrl').value.trim(),
@@ -790,10 +850,19 @@ function renderAdminSettings(app) {
   };
   $('#testApi').onclick = async () => {
     try {
+      // Save current form values first so callLLM uses them
+      State.config = {
+        ...State.config,
+        provider: $('#provider').value,
+        useProxy: $('#mode').value === 'proxy',
+        apiKey: $('#apiKey').value.trim(),
+        proxyUrl: $('#proxyUrl').value.trim(),
+        model: $('#model').value,
+      };
       $('#testApi').innerHTML = '<span class="spinner"></span> Testing...';
       $('#testApi').disabled = true;
-      const out = await callClaude({ system: 'Reply with exactly "OK".', messages: [{role:'user', content:'ping'}], maxTokens: 10 });
-      toast(out.trim() === 'OK' ? 'Connection OK' : 'Got: ' + out.slice(0,60), 'success');
+      const out = await callLLM({ system: 'Reply with exactly the two characters: OK', messages: [{role:'user', content:'ping'}], maxTokens: 10 });
+      toast(out.trim().startsWith('OK') ? 'Connection OK ✓' : 'Got: ' + out.slice(0,60), 'success');
     } catch(e) { toast(e.message, 'error'); }
     finally { $('#testApi').innerHTML = 'Test connection'; $('#testApi').disabled = false; }
   };
